@@ -1,0 +1,6 @@
+{
+  "name": "SATYAM - Daily Vehicle & Work Expense Entry",
+  "description": "A high-speed spreadsheet-style daily vehicle, work, fuel, maintenance, diary expense, and balance entry system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
