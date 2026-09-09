@@ -49,7 +49,7 @@ import {
   clearAllAppDataAndResetClean,
 } from './utils/storage';
 import { LoginPage } from './components/LoginPage';
-
+ import { uploadLocalDataToCloud, downloadCloudDataToLocal, hasCloudData } from './utils/cloudSync';
 export default function App() {
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => getAuthSession());
@@ -67,7 +67,7 @@ export default function App() {
     createEmptyDailySheet(selectedDate, getStoredOpeningBalance(), getStoredVehicles())
   );
   const [statements, setStatements] = useState<StatementTransaction[]>(() => getStoredStatements());
-
+ 
   // Saved Entry & Edit State
   const [isEditingSavedEntry, setIsEditingSavedEntry] = useState(false);
   const [isSavedEntriesOpen, setIsSavedEntriesOpen] = useState(false);
@@ -131,7 +131,32 @@ export default function App() {
       setToastMessage(null);
     }, 4000);
   };
+useEffect(() => {
+  const loadCloudData = async () => {
+    const cloudExists = await hasCloudData();
 
+    if (cloudExists) {
+      const downloaded = await downloadCloudDataToLocal();
+
+      if (downloaded) {
+        setVehicles(getStoredVehicles());
+        setWorkers(getStoredWorkers());
+        setOpeningBalance(getStoredOpeningBalance());
+        setStatements(getStoredStatements());
+
+        const freshSheet = getOrCreateDailySheet(
+          selectedDate,
+          getStoredVehicles()
+        );
+
+        setDailySheet(freshSheet);
+        showToast('Cloud data loaded successfully', 'success');
+      }
+    }
+  };
+
+  loadCloudData();
+}, []);
   const handleLoginSuccess = (userPhone: string) => {
     setAuthSession(true);
     setIsAuthenticated(true);
@@ -364,7 +389,7 @@ export default function App() {
     // (If profit: XYZ is added to Opening; if loss: XYZ is deducted from Opening)
     setOpeningBalance(closingBalance);
     saveStoredOpeningBalance(closingBalance);
-
+void uploadLocalDataToCloud();
     // 4. CRITICAL USER REQUIREMENT:
     // "जब मेरी एंट्री सेव हो जाए, तो जो एडवांस लिया हुआ है, वह पूरी तरह से ज़ीरो होना चाहिए। एक ही बार एंट्री सेव होने के बाद, एडवांस लिया हुआ पूरी तरह से ज़ीरो हो जाना चाहिए और वह जगह खाली हो जानी चाहिए। उसकी जगह पर जो लिया हुआ एडवांस एक्सपायर्ड अमाउंट है, वह एडजस्ट होना चाहिए।"
     const freshCleanSheet = createEmptyDailySheet(selectedDate, closingBalance, vehicles);
